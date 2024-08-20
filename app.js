@@ -18,7 +18,6 @@ app.use(cors());
 app.post("/api/contact", upload.single("file"), (req, res) => {
   const { name, phone, adresse } = req.body;
   const file = req.file;
-  console.log(process.env.GMAIL_USERM, process.env.GMAIL_PASS);
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -48,7 +47,7 @@ app.post("/api/contact", upload.single("file"), (req, res) => {
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       console.log(error);
-      return res.status(500).send("Error sending email");
+      return res.status(500).send("Error sending email", error);
     }
 
     // Delete the file after email is sent
