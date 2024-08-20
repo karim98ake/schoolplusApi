@@ -6,6 +6,7 @@ const cors = require("cors");
 const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
+const { v4: uuidv4 } = require("uuid");
 
 require("dotenv").config();
 
@@ -27,10 +28,13 @@ app.post("/api/contact", upload.single("file"), (req, res) => {
     },
   });
 
+  // Generate a unique identifier
+  const uniqueId = uuidv4();
+
   const mailOptions = {
     from: process.env.GMAIL_USER,
     to: process.env.GMAIL_CLIENT,
-    subject: "طلب جديد",
+    subject: ` لديك طلب جديد من - ${name} `,
     text: `
       Name: ${name}
       Phone: ${phone}
