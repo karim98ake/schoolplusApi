@@ -4,32 +4,34 @@ const multer = require("multer");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
+const fs = require("fs");
+const path = require("path");
 
-// Set up Multer for file uploads
+require("dotenv").config();
+
 const upload = multer({ dest: "./uploads/" });
 
 app.use(bodyParser.json());
-
 app.use(express.static("public"));
 app.use(cors());
 
 app.post("/api/contact", upload.single("file"), (req, res) => {
   const { name, phone, adresse } = req.body;
   const file = req.file;
+  console.log(process.env.GMAIL_USERM, process.env.GMAIL_PASS);
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: "abdelkarim17elalaoui@gmail.com",
-      pass: "prlr ryjr jxns vhwu",
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_PASS,
     },
   });
 
-  // Define the email message
   const mailOptions = {
-    from: "abdelkarim17elalaoui@gmail.com",
-    to: "abdelkarim17elalaoui@gmail.com",
-    subject: "New Contact Form Submission",
+    from: process.env.GMAIL_USER,
+    to: process.env.GMAIL_CLIENT,
+    subject: "طلب جديد",
     text: `
       Name: ${name}
       Phone: ${phone}
@@ -43,17 +45,25 @@ app.post("/api/contact", upload.single("file"), (req, res) => {
     ],
   };
 
-  // Send the email using Nodemailer
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      return console.log(error);
+      console.log(error);
+      return res.status(500).send("Error sending email");
     }
-    console.log("Email sent: " + info.response);
-    res.status(200).send("Form data received successfully!");
+
+    // Delete the file after email is sent
+    fs.unlink(file.path, (err) => {
+      if (err) {
+        console.error("Error deleting file:", err);
+      } else {
+        console.log("File deleted successfully");
+      }
+    });
+
+    res.status(200).send("Form data received and email sent successfully!");
   });
 });
 
-// Start the server
 const port = 3001;
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
